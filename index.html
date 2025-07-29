@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interaktive Übung: Dein KI-Mindset Check</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .question-card {
+            transition: all 0.3s ease-in-out;
+        }
+        .result-card {
+            animation: fadeIn 0.8s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        /* Custom radio button styles */
+        input[type="radio"]:checked + label {
+            background-color: #4f46e5; /* indigo-600 */
+            color: white;
+            border-color: #4f46e5; /* indigo-600 */
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800">
+
+    <div class="container mx-auto p-4 sm:p-6 lg:p-8 max-w-4xl">
+        
+        <header class="text-center mb-8">
+            <img src="https://i.imgur.com/PKXYVWW.png" alt="Workshop Logo" class="h-16 mx-auto mb-4" onerror="this.style.display='none'">
+            <h1 class="text-3xl sm:text-4xl font-bold text-slate-900">Dein KI-Mindset Check</h1>
+            <p class="text-slate-600 mt-2">Eine kurze Übung zur Selbstreflexion deiner Haltung gegenüber KI.</p>
+        </header>
+
+        <div id="quiz-container" class="bg-white rounded-xl shadow-md p-6">
+            <!-- Intro Screen -->
+            <div id="intro-screen">
+                <h2 class="text-2xl font-bold text-slate-800 mb-4">Wie stehst du zur Künstlichen Intelligenz?</h2>
+                <p class="mb-4">Diese Übung hilft dir, deine eigene Einstellung gegenüber KI zu reflektieren. Es gibt hier keine richtigen oder falschen Antworten – nur deine persönliche Einschätzung zählt.</p>
+                <p class="mb-6">Beantworte die folgenden 6 Fragen intuitiv. Am Ende erhältst du eine kurze Auswertung, die dir als Denkanstoß für den weiteren Workshop dienen soll.</p>
+                <button onclick="startQuiz()" class="w-full bg-indigo-600 text-white font-bold py-3 px-6 rounded-lg shadow-lg hover:bg-indigo-700 transition-all transform hover:scale-105">
+                    Übung starten (ca. 10 Min)
+                </button>
+            </div>
+
+            <!-- Quiz Questions -->
+            <div id="question-screen" class="hidden">
+                <div id="question-card" class="question-card">
+                    <!-- Question content will be injected here -->
+                </div>
+                <div class="mt-6 flex justify-between items-center">
+                    <span id="progress-text" class="text-sm font-medium text-slate-500"></span>
+                    <button id="next-button" onclick="nextQuestion()" class="bg-slate-300 text-slate-600 font-bold py-2 px-6 rounded-lg cursor-not-allowed" disabled>
+                        Weiter
+                    </button>
+                </div>
+            </div>
+
+            <!-- Result Screen -->
+            <div id="result-screen" class="hidden">
+                 <!-- Result content will be injected here -->
+            </div>
+        </div>
+    </div>
+
+<script>
+    const questions = [
+        {
+            question: "Wenn ich an die Zukunft meiner Arbeit mit KI denke, fühle ich mich hauptsächlich...",
+            answers: [
+                { text: "begeistert und voller Tatendrang.", points: 5 },
+                { text: "neugierig und offen für Neues.", points: 4 },
+                { text: "neutral, ich warte ab, was kommt.", points: 3 },
+                { text: "etwas unsicher und zurückhaltend.", points: 2 },
+            ]
+        },
+        {
+            question: "KI-Tools sehe ich in erster Linie als...",
+            answers: [
+                { text: "strategische Chance, um völlig neue Dinge zu tun.", points: 5 },
+                { text: "nützliche Helfer, um meine Arbeit zu beschleunigen.", points: 4 },
+                { text: "komplexe Technologie, deren Nutzen ich noch nicht ganz einschätzen kann.", points: 3 },
+                { text: "potenzielle Quelle für Fehler und zusätzliche Arbeit.", points: 2 },
+            ]
+        },
+        {
+            question: "Wenn ich ein neues KI-Tool entdecke, reagiere ich meistens so:",
+            answers: [
+                { text: "Ich probiere es sofort aus und überlege, wie ich es nutzen kann.", points: 5 },
+                { text: "Ich schaue es mir an, wenn ich Zeit habe und es relevant für mich ist.", points: 4 },
+                { text: "Ich warte lieber, bis andere es getestet haben und es etabliert ist.", points: 3 },
+                { text: "Ich bin skeptisch und nutze lieber die bewährten Methoden.", points: 2 },
+            ]
+        },
+        {
+            question: "Die Aussage 'KI wird menschliche Arbeitsplätze nicht ersetzen, sondern grundlegend verändern'...",
+            answers: [
+                { text: "stimmt absolut, es entstehen mehr Chancen als Risiken.", points: 5 },
+                { text: "klingt plausibel, aber die Umsetzung wird eine Herausforderung.", points: 4 },
+                { text: "ist eine optimistische Sichtweise, ich bin mir da nicht so sicher.", points: 3 },
+                { text: "bereitet mir Sorgen im Hinblick auf die Zukunft vieler Berufe.", points: 2 },
+            ]
+        },
+        {
+            question: "Um KI erfolgreich im Unternehmen einzuführen, ist für mich das Wichtigste...",
+            answers: [
+                { text: "eine Kultur des Experimentierens und schnellen Lernens.", points: 5 },
+                { text: "klare Anwendungsfälle, die einen direkten Nutzen bringen.", points: 4 },
+                { text: "umfassende Schulungen für alle Mitarbeiter.", points: 3 },
+                { text: "strenge Regeln und ethische Leitplanken von Anfang an.", points: 2 },
+            ]
+        },
+        {
+            question: "Meine persönliche Lernbereitschaft in Bezug auf neue Technologien wie KI würde ich als ... beschreiben.",
+            answers: [
+                { text: "sehr hoch, ich bringe mir ständig Neues bei.", points: 5 },
+                { text: "hoch, wenn ich den praktischen Nutzen sehe.", points: 4 },
+                { text: "mittel, ich lerne, was für meinen Job notwendig ist.", points: 3 },
+                { text: "eher gering, ich konzentriere mich auf meine Kernkompetenzen.", points: 2 },
+            ]
+        }
+    ];
+
+    const results = [
+        {
+            score: 25,
+            title: "Der KI-Pionier",
+            description: "Du siehst KI als riesige Chance und bist begeistert von den neuen Möglichkeiten. Deine proaktive und experimentierfreudige Art ist ein Motor für Innovation.",
+            feedback: [
+                "<b>Deine Stärke:</b> Du erkennst Potenziale früh und hast keine Angst, neue Wege zu gehen.",
+                "<b>Dein Denkanstoß:</b> Achte darauf, dein Team mitzunehmen und auch die Bedenken anderer ernst zu nehmen, um niemanden auf dem Weg zu verlieren.",
+                "<b>Dein nächster Schritt:</b> Identifiziere einen konkreten, kleinen Prozess in deinem Bereich, den du mit einem neuen KI-Tool verbessern kannst, und starte ein Pilotprojekt."
+            ],
+            color: "indigo"
+        },
+        {
+            score: 20,
+            title: "Der Neugierige Entdecker",
+            description: "Du bist offen und neugierig gegenüber KI, aber suchst noch nach den richtigen Anknüpfungspunkten. Deine positive Grundhaltung ist die perfekte Basis, um die Potenziale von KI zu erschließen.",
+            feedback: [
+                "<b>Deine Stärke:</b> Du bist lernbereit und offen für Veränderungen, ohne dem Hype blind zu folgen.",
+                "<b>Dein Denkanstoß:</b> Verliere dich nicht in der Fülle der Möglichkeiten. Konzentriere dich auf ein oder zwei konkrete Anwendungsfälle, die dir den größten Nutzen bringen.",
+                "<b>Dein nächster Schritt:</b> Nutze die Toolbox, um ein praktisches Tool zu finden, das eine deiner wiederkehrenden Aufgaben vereinfacht, und probiere es aus."
+            ],
+            color: "sky"
+        },
+        {
+            score: 15,
+            title: "Der Pragmatische Anwender",
+            description: "Du siehst KI vor allem als Werkzeug zur Effizienzsteigerung. Für dich zählt der praktische Nutzen im Hier und Jetzt mehr als Zukunftsvisionen.",
+            feedback: [
+                "<b>Deine Stärke:</b> Du hast einen klaren Blick für den realen Nutzen und lässt dich nicht von leeren Versprechungen blenden.",
+                "<b>Dein Denkanstoß:</b> Behalte auch die strategische Ebene im Blick. Manchmal liegen die größten Chancen nicht in der Optimierung bestehender Prozesse, sondern in der Schaffung völlig neuer.",
+                "<b>Dein nächster Schritt:</b> Analysiere eine deiner zeitaufwändigsten Routineaufgaben und recherchiere gezielt nach einem KI-Tool, das genau dieses Problem löst."
+            ],
+            color: "teal"
+        },
+        {
+            score: 0,
+            title: "Der Vorsichtige Skeptiker",
+            description: "Du stehst der rasanten Entwicklung von KI mit einer gesunden Portion Skepsis gegenüber. Dir sind Sicherheit, klare Regeln und die potenziellen Risiken besonders wichtig.",
+            feedback: [
+                "<b>Deine Stärke:</b> Deine kritische Haltung ist extrem wertvoll, um Risiken und ethische Fragen nicht aus den Augen zu verlieren.",
+                "<b>Dein Denkanstoß:</b> Versuche, KI nicht nur als Risiko, sondern auch als Werkzeug zu sehen, das – richtig eingesetzt – deine Arbeit sicherer und besser machen kann.",
+                "<b>Dein nächster Schritt:</b> Beschäftige dich mit den Datenschutz- und Sicherheitsaspekten von Tools wie dem MS Copilot, um ein fundiertes Verständnis für einen sicheren Einsatz zu entwickeln."
+            ],
+            color: "amber"
+        }
+    ];
+
+    let currentQuestionIndex = 0;
+    let score = 0;
+    let userAnswers = [];
+
+    function startQuiz() {
+        document.getElementById('intro-screen').classList.add('hidden');
+        document.getElementById('question-screen').classList.remove('hidden');
+        showQuestion();
+    }
+
+    function showQuestion() {
+        const question = questions[currentQuestionIndex];
+        const card = document.getElementById('question-card');
+        
+        let answersHtml = '<div class="grid grid-cols-1 gap-3 mt-4">';
+        question.answers.forEach((answer, index) => {
+            answersHtml += `
+                <div>
+                    <input type="radio" id="answer-${index}" name="answer" value="${answer.points}" class="hidden">
+                    <label for="answer-${index}" class="block p-4 border-2 border-slate-200 rounded-lg cursor-pointer hover:bg-slate-50 transition text-center">
+                        ${answer.text}
+                    </label>
+                </div>
+            `;
+        });
+        answersHtml += '</div>';
+
+        card.innerHTML = `
+            <h3 class="text-xl font-bold text-center">${question.question}</h3>
+            ${answersHtml}
+        `;
+        
+        document.getElementById('progress-text').innerText = `Frage ${currentQuestionIndex + 1} von ${questions.length}`;
+
+        document.querySelectorAll('input[name="answer"]').forEach(radio => {
+            radio.addEventListener('change', (event) => {
+                document.getElementById('next-button').disabled = false;
+                document.getElementById('next-button').classList.remove('bg-slate-300', 'text-slate-600', 'cursor-not-allowed');
+                document.getElementById('next-button').classList.add('bg-indigo-600', 'text-white');
+            });
+        });
+    }
+
+    function nextQuestion() {
+        const selectedAnswer = document.querySelector('input[name="answer"]:checked');
+        if (!selectedAnswer) return;
+
+        score += parseInt(selectedAnswer.value);
+        userAnswers.push(parseInt(selectedAnswer.value));
+        
+        currentQuestionIndex++;
+
+        if (currentQuestionIndex < questions.length) {
+            showQuestion();
+            document.getElementById('next-button').disabled = true;
+            document.getElementById('next-button').classList.add('bg-slate-300', 'text-slate-600', 'cursor-not-allowed');
+            document.getElementById('next-button').classList.remove('bg-indigo-600', 'text-white');
+        } else {
+            showResult();
+        }
+    }
+
+    function showResult() {
+        document.getElementById('question-screen').classList.add('hidden');
+        const resultScreen = document.getElementById('result-screen');
+        resultScreen.classList.remove('hidden');
+
+        let finalResult = results[0];
+        if (score <= 14) finalResult = results[3];
+        else if (score <= 19) finalResult = results[2];
+        else if (score <= 24) finalResult = results[1];
+        
+        let feedbackHtml = '';
+        finalResult.feedback.forEach(item => {
+            feedbackHtml += `<li class="flex items-start"><span class="mr-2 mt-1 text-${finalResult.color}-500">✓</span><span>${item}</span></li>`;
+        });
+
+        resultScreen.innerHTML = `
+            <div class="result-card border-l-4 border-${finalResult.color}-500 bg-${finalResult.color}-50 p-6 rounded-r-lg">
+                <h2 class="text-2xl font-bold text-${finalResult.color}-800">${finalResult.title}</h2>
+                <p class="mt-2 text-slate-700">${finalResult.description}</p>
+                <ul class="mt-4 space-y-2 text-slate-600">
+                    ${feedbackHtml}
+                </ul>
+            </div>
+            <button onclick="restartQuiz()" class="w-full mt-6 bg-slate-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-slate-700 transition">
+                Übung wiederholen
+            </button>
+        `;
+    }
+    
+    function restartQuiz() {
+        currentQuestionIndex = 0;
+        score = 0;
+        userAnswers = [];
+        document.getElementById('result-screen').classList.add('hidden');
+        document.getElementById('intro-screen').classList.remove('hidden');
+    }
+
+</script>
+
+</body>
+</html>
