@@ -6,6 +6,9 @@
     <title>Interaktive Übung: Dein KI-Mindset Check</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- PDF Generation Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -30,10 +33,19 @@
 </head>
 <body class="bg-slate-100 text-slate-800">
 
+    <!-- 
+      Tailwind JIT Safelist:
+      Ensures dynamically generated classes for the result cards are processed correctly.
+      border-indigo-500 bg-indigo-50 text-indigo-800 text-indigo-500
+      border-sky-500 bg-sky-50 text-sky-800 text-sky-500
+      border-teal-500 bg-teal-50 text-teal-800 text-teal-500
+      border-amber-500 bg-amber-50 text-amber-800 text-amber-500
+    -->
+
     <div class="container mx-auto p-4 sm:p-6 lg:p-8 max-w-4xl">
         
         <header class="text-center mb-8">
-            <img src="https://i.imgur.com/PKXYVWW.png" alt="Workshop Logo" class="h-16 mx-auto mb-4" onerror="this.style.display='none'">
+            <img src="https://i.imgur.com/PKXYVWW.png" alt="Workshop Logo" class="h-16 mx-auto mb-4" id="logo" onerror="this.onerror=null;this.src='https://placehold.co/200x64/e2e8f0/475569?text=Logo';">
             <h1 class="text-3xl sm:text-4xl font-bold text-slate-900">Dein KI-Mindset Check</h1>
             <p class="text-slate-600 mt-2">Eine kurze Übung zur Selbstreflexion deiner Haltung gegenüber KI.</p>
         </header>
@@ -45,7 +57,7 @@
                 <p class="mb-4">Diese Übung hilft dir, deine eigene Einstellung gegenüber KI zu reflektieren. Es gibt hier keine richtigen oder falschen Antworten – nur deine persönliche Einschätzung zählt.</p>
                 <p class="mb-6">Beantworte die folgenden 6 Fragen intuitiv. Am Ende erhältst du eine kurze Auswertung, die dir als Denkanstoß für den weiteren Workshop dienen soll.</p>
                 <button onclick="startQuiz()" class="w-full bg-indigo-600 text-white font-bold py-3 px-6 rounded-lg shadow-lg hover:bg-indigo-700 transition-all transform hover:scale-105">
-                    Übung starten (ca. 10 Min)
+                    Übung starten (ca. 3 Min)
                 </button>
             </div>
 
@@ -64,12 +76,13 @@
 
             <!-- Result Screen -->
             <div id="result-screen" class="hidden">
-                 <!-- Result content will be injected here -->
+               <!-- Result content will be injected here -->
             </div>
         </div>
     </div>
 
 <script>
+    // --- FRAGEN ---
     const questions = [
         {
             question: "Wenn ich an die Zukunft meiner Arbeit mit KI denke, fühle ich mich hauptsächlich...",
@@ -127,10 +140,11 @@
         }
     ];
 
+    // --- ERGEBNIS-TYPEN ---
     const results = [
         {
             score: 25,
-            title: "Der KI-Pionier",
+            title: "Der KI-Pionier / Die KI-Pionierin",
             description: "Du siehst KI als riesige Chance und bist begeistert von den neuen Möglichkeiten. Deine proaktive und experimentierfreudige Art ist ein Motor für Innovation.",
             feedback: [
                 "<b>Deine Stärke:</b> Du erkennst Potenziale früh und hast keine Angst, neue Wege zu gehen.",
@@ -141,7 +155,7 @@
         },
         {
             score: 20,
-            title: "Der Neugierige Entdecker",
+            title: "Der/Die Neugierige Entdecker:in",
             description: "Du bist offen und neugierig gegenüber KI, aber suchst noch nach den richtigen Anknüpfungspunkten. Deine positive Grundhaltung ist die perfekte Basis, um die Potenziale von KI zu erschließen.",
             feedback: [
                 "<b>Deine Stärke:</b> Du bist lernbereit und offen für Veränderungen, ohne dem Hype blind zu folgen.",
@@ -152,7 +166,7 @@
         },
         {
             score: 15,
-            title: "Der Pragmatische Anwender",
+            title: "Der/Die Pragmatische Anwender:in",
             description: "Du siehst KI vor allem als Werkzeug zur Effizienzsteigerung. Für dich zählt der praktische Nutzen im Hier und Jetzt mehr als Zukunftsvisionen.",
             feedback: [
                 "<b>Deine Stärke:</b> Du hast einen klaren Blick für den realen Nutzen und lässt dich nicht von leeren Versprechungen blenden.",
@@ -163,7 +177,7 @@
         },
         {
             score: 0,
-            title: "Der Vorsichtige Skeptiker",
+            title: "Der/Die Vorsichtige Skeptiker:in",
             description: "Du stehst der rasanten Entwicklung von KI mit einer gesunden Portion Skepsis gegenüber. Dir sind Sicherheit, klare Regeln und die potenziellen Risiken besonders wichtig.",
             feedback: [
                 "<b>Deine Stärke:</b> Deine kritische Haltung ist extrem wertvoll, um Risiken und ethische Fragen nicht aus den Augen zu verlieren.",
@@ -174,6 +188,7 @@
         }
     ];
 
+    // --- QUIZ-LOGIK ---
     let currentQuestionIndex = 0;
     let score = 0;
     let userAnswers = [];
@@ -241,10 +256,11 @@
         const resultScreen = document.getElementById('result-screen');
         resultScreen.classList.remove('hidden');
 
-        let finalResult = results[0];
+        let finalResult;
         if (score <= 14) finalResult = results[3];
         else if (score <= 19) finalResult = results[2];
         else if (score <= 24) finalResult = results[1];
+        else finalResult = results[0];
         
         let feedbackHtml = '';
         finalResult.feedback.forEach(item => {
@@ -252,16 +268,23 @@
         });
 
         resultScreen.innerHTML = `
-            <div class="result-card border-l-4 border-${finalResult.color}-500 bg-${finalResult.color}-50 p-6 rounded-r-lg">
-                <h2 class="text-2xl font-bold text-${finalResult.color}-800">${finalResult.title}</h2>
-                <p class="mt-2 text-slate-700">${finalResult.description}</p>
-                <ul class="mt-4 space-y-2 text-slate-600">
-                    ${feedbackHtml}
-                </ul>
+            <div id="result-for-pdf">
+                <div class="result-card border-l-4 border-${finalResult.color}-500 bg-${finalResult.color}-50 p-6 rounded-r-lg">
+                    <h2 class="text-2xl font-bold text-${finalResult.color}-800">${finalResult.title}</h2>
+                    <p class="mt-2 text-slate-700">${finalResult.description}</p>
+                    <ul class="mt-4 space-y-2 text-slate-600">
+                        ${feedbackHtml}
+                    </ul>
+                </div>
             </div>
-            <button onclick="restartQuiz()" class="w-full mt-6 bg-slate-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-slate-700 transition">
-                Übung wiederholen
-            </button>
+            <div class="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                 <button onclick="downloadResultPDF()" class="w-full bg-cyan-700 text-white font-bold py-3 px-6 rounded-lg hover:bg-cyan-800 transition">
+                    Ergebnis als PDF speichern
+                </button>
+                <button onclick="restartQuiz()" class="w-full bg-slate-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-slate-700 transition">
+                    Übung wiederholen
+                </button>
+            </div>
         `;
     }
     
@@ -271,6 +294,65 @@
         userAnswers = [];
         document.getElementById('result-screen').classList.add('hidden');
         document.getElementById('intro-screen').classList.remove('hidden');
+    }
+
+    // --- PDF GENERATION ---
+    async function downloadResultPDF() {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF({
+            orientation: 'p',
+            unit: 'mm',
+            format: 'a4'
+        });
+
+        // --- PDF Header ---
+        // 1. Add Logo
+        const logoImg = document.getElementById('logo');
+        if (logoImg.complete && logoImg.naturalHeight !== 0) {
+             // Using 'PNG' format for transparency support
+            doc.addImage(logoImg, 'PNG', 85, 15, 40, 13);
+        }
+
+        // 2. Add Title
+        doc.setFontSize(22);
+        doc.setFont("helvetica", "bold");
+        doc.text("Dein KI-Mindset Check", 105, 40, { align: 'center' });
+
+        // 3. Add Subtitle
+        doc.setFontSize(12);
+        doc.setFont("helvetica", "normal");
+        doc.text("Eine kurze Übung zur Selbstreflexion deiner Haltung gegenüber KI.", 105, 48, { align: 'center' });
+        
+        // 4. Add Date
+        const today = new Date();
+        const dateString = `Erstellt am: ${today.toLocaleDateString('de-DE')}`;
+        doc.setFontSize(10);
+        doc.setTextColor(100); // Set color to gray
+        doc.text(dateString, 195, 15, { align: 'right' });
+
+
+        // --- PDF Body (Result Card) ---
+        const resultElement = document.getElementById('result-for-pdf');
+        // Use html2canvas to render the result card to a canvas
+        const canvas = await html2canvas(resultElement, {
+            scale: 2, // Higher scale for better resolution
+            useCORS: true,
+            backgroundColor: '#ffffff' // Ensure a white background
+        });
+        const imgData = canvas.toDataURL('image/png');
+        
+        // Calculate image dimensions to fit the page with margins
+        const page_width = doc.internal.pageSize.getWidth();
+        const page_margin = 15;
+        const img_width = page_width - (page_margin * 2);
+        const img_props = doc.getImageProperties(imgData);
+        const img_height = (img_props.height * img_width) / img_props.width;
+        const startY = 65; // Y position to start drawing the image
+
+        doc.addImage(imgData, 'PNG', page_margin, startY, img_width, img_height);
+
+        // --- Save PDF ---
+        doc.save('KI-Mindset-Check_Ergebnis.pdf');
     }
 
 </script>
