@@ -3,359 +3,344 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interaktive Übung: Dein KI-Mindset Check</title>
+    <title>Mein KI Mindset Check</title>
+    <!-- Tailwind CSS for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <!-- PDF Generation Libraries -->
+    <!-- jsPDF for PDF generation -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- html2canvas to capture HTML elements as images -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: 'Inter', sans-serif;
         }
-        .question-card {
-            transition: all 0.3s ease-in-out;
+        /* Custom styles for radio buttons to make them more appealing */
+        .custom-radio {
+            appearance: none;
+            -webkit-appearance: none;
+            width: 1.5rem;
+            height: 1.5rem;
+            border: 2px solid #d1d5db;
+            border-radius: 50%;
+            display: inline-block;
+            position: relative;
+            cursor: pointer;
+            transition: background-color 0.2s, border-color 0.2s;
         }
-        .result-card {
-            animation: fadeIn 0.8s ease-in-out;
+        .custom-radio:checked {
+            border-color: #3b82f6;
+            background-color: #3b82f6;
         }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: scale(0.95); }
-            to { opacity: 1; transform: scale(1); }
+        .custom-radio:checked::after {
+            content: '';
+            width: 0.75rem;
+            height: 0.75rem;
+            border-radius: 50%;
+            background: white;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
         }
-        /* Custom radio button styles */
-        input[type="radio"]:checked + label {
-            background-color: #4f46e5; /* indigo-600 */
-            color: white;
-            border-color: #4f46e5; /* indigo-600 */
+        /* Loading spinner styles */
+        .loader {
+            border: 5px solid #f3f3f3;
+            border-radius: 50%;
+            border-top: 5px solid #3b82f6;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
     </style>
 </head>
-<body class="bg-slate-100 text-slate-800">
+<body class="bg-gray-50 text-gray-800">
 
-    <!-- 
-      Tailwind JIT Safelist:
-      Ensures dynamically generated classes for the result cards are processed correctly.
-      border-indigo-500 bg-indigo-50 text-indigo-800 text-indigo-500
-      border-sky-500 bg-sky-50 text-sky-800 text-sky-500
-      border-teal-500 bg-teal-50 text-teal-800 text-teal-500
-      border-amber-500 bg-amber-50 text-amber-800 text-amber-500
-    -->
-
-    <div class="container mx-auto p-4 sm:p-6 lg:p-8 max-w-4xl">
+    <div class="container mx-auto p-4 md:p-8 max-w-4xl">
         
-        <header class="text-center mb-8">
-            <img src="https://i.imgur.com/PKXYVWW.png" alt="Workshop Logo" class="h-16 mx-auto mb-4" id="logo" onerror="this.onerror=null;this.src='https://placehold.co/200x64/e2e8f0/475569?text=Logo';">
-            <h1 class="text-3xl sm:text-4xl font-bold text-slate-900">Dein KI-Mindset Check</h1>
-            <p class="text-slate-600 mt-2">Eine kurze Übung zur Selbstreflexion deiner Haltung gegenüber KI.</p>
+        <!-- Header Section -->
+        <header id="main-header" class="flex items-center justify-between mb-8 pb-4 border-b border-gray-200">
+            <h1 class="text-2xl md:text-4xl font-bold text-gray-700">Mein KI Mindset Check</h1>
+            <img src="https://i.imgur.com/PKXYVWW.png" alt="Firmenlogo" class="h-12 md:h-16" onerror="this.onerror=null; this.src='https://placehold.co/150x50/cccccc/000000?text=Logo';">
         </header>
 
-        <div id="quiz-container" class="bg-white rounded-xl shadow-md p-6">
-            <!-- Intro Screen -->
-            <div id="intro-screen">
-                <h2 class="text-2xl font-bold text-slate-800 mb-4">Wie stehst du zur Künstlichen Intelligenz?</h2>
-                <p class="mb-4">Diese Übung hilft dir, deine eigene Einstellung gegenüber KI zu reflektieren. Es gibt hier keine richtigen oder falschen Antworten – nur deine persönliche Einschätzung zählt.</p>
-                <p class="mb-6">Beantworte die folgenden 6 Fragen intuitiv. Am Ende erhältst du eine kurze Auswertung, die dir als Denkanstoß für den weiteren Workshop dienen soll.</p>
-                <button onclick="startQuiz()" class="w-full bg-indigo-600 text-white font-bold py-3 px-6 rounded-lg shadow-lg hover:bg-indigo-700 transition-all transform hover:scale-105">
-                    Übung starten (ca. 3 Min)
+        <!-- Quiz Section -->
+        <div id="quiz-section">
+            <p class="mb-6 text-lg text-gray-600">Reflektieren Sie Ihren Umgang mit Künstlicher Intelligenz im beruflichen Alltag. Beantworten Sie die folgenden Fragen auf einer Skala von 1 (stimme überhaupt nicht zu) bis 5 (stimme voll und ganz zu).</p>
+            
+            <form id="quiz-form" class="space-y-8">
+                <!-- Questions will be injected here by JavaScript -->
+            </form>
+
+            <div class="mt-10 text-center">
+                <button id="evaluate-btn" class="bg-blue-600 text-white font-bold py-3 px-8 rounded-lg shadow-md hover:bg-blue-700 transition-transform transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-blue-300">
+                    Auswerten & Ergebnis anzeigen
                 </button>
-            </div>
-
-            <!-- Quiz Questions -->
-            <div id="question-screen" class="hidden">
-                <div id="question-card" class="question-card">
-                    <!-- Question content will be injected here -->
-                </div>
-                <div class="mt-6 flex justify-between items-center">
-                    <span id="progress-text" class="text-sm font-medium text-slate-500"></span>
-                    <button id="next-button" onclick="nextQuestion()" class="bg-slate-300 text-slate-600 font-bold py-2 px-6 rounded-lg cursor-not-allowed" disabled>
-                        Weiter
-                    </button>
-                </div>
-            </div>
-
-            <!-- Result Screen -->
-            <div id="result-screen" class="hidden">
-               <!-- Result content will be injected here -->
             </div>
         </div>
+
+        <!-- Result Section (initially hidden) -->
+        <div id="result-section" class="hidden">
+            <div id="pdf-content" class="bg-white p-8 rounded-xl shadow-lg border border-gray-200">
+                <h2 class="text-3xl font-bold text-blue-700 mb-4">Ihre Auswertung</h2>
+                <div id="result-text" class="space-y-4 text-lg">
+                    <!-- Result content will be injected here -->
+                </div>
+            </div>
+            <div class="mt-8 text-center">
+                 <button id="download-pdf-btn" class="bg-green-600 text-white font-bold py-3 px-8 rounded-lg shadow-md hover:bg-green-700 transition-transform transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-green-300">
+                    Ergebnis als PDF herunterladen
+                </button>
+                <button id="restart-btn" class="mt-4 md:mt-0 md:ml-4 bg-gray-500 text-white font-bold py-3 px-8 rounded-lg shadow-md hover:bg-gray-600 transition-transform transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-gray-300">
+                    Neu starten
+                </button>
+            </div>
+        </div>
+        
+        <!-- Loading Overlay -->
+        <div id="loading-overlay" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+            <div class="bg-white p-8 rounded-lg shadow-xl flex flex-col items-center">
+                <div class="loader mb-4"></div>
+                <p class="text-gray-700 font-semibold">PDF wird generiert...</p>
+            </div>
+        </div>
+
     </div>
 
-<script>
-    // --- FRAGEN ---
-    const questions = [
-        {
-            question: "Wenn ich an die Zukunft meiner Arbeit mit KI denke, fühle ich mich hauptsächlich...",
-            answers: [
-                { text: "begeistert und voller Tatendrang.", points: 5 },
-                { text: "neugierig und offen für Neues.", points: 4 },
-                { text: "neutral, ich warte ab, was kommt.", points: 3 },
-                { text: "etwas unsicher und zurückhaltend.", points: 2 },
-            ]
-        },
-        {
-            question: "KI-Tools sehe ich in erster Linie als...",
-            answers: [
-                { text: "strategische Chance, um völlig neue Dinge zu tun.", points: 5 },
-                { text: "nützliche Helfer, um meine Arbeit zu beschleunigen.", points: 4 },
-                { text: "komplexe Technologie, deren Nutzen ich noch nicht ganz einschätzen kann.", points: 3 },
-                { text: "potenzielle Quelle für Fehler und zusätzliche Arbeit.", points: 2 },
-            ]
-        },
-        {
-            question: "Wenn ich ein neues KI-Tool entdecke, reagiere ich meistens so:",
-            answers: [
-                { text: "Ich probiere es sofort aus und überlege, wie ich es nutzen kann.", points: 5 },
-                { text: "Ich schaue es mir an, wenn ich Zeit habe und es relevant für mich ist.", points: 4 },
-                { text: "Ich warte lieber, bis andere es getestet haben und es etabliert ist.", points: 3 },
-                { text: "Ich bin skeptisch und nutze lieber die bewährten Methoden.", points: 2 },
-            ]
-        },
-        {
-            question: "Die Aussage 'KI wird menschliche Arbeitsplätze nicht ersetzen, sondern grundlegend verändern'...",
-            answers: [
-                { text: "stimmt absolut, es entstehen mehr Chancen als Risiken.", points: 5 },
-                { text: "klingt plausibel, aber die Umsetzung wird eine Herausforderung.", points: 4 },
-                { text: "ist eine optimistische Sichtweise, ich bin mir da nicht so sicher.", points: 3 },
-                { text: "bereitet mir Sorgen im Hinblick auf die Zukunft vieler Berufe.", points: 2 },
-            ]
-        },
-        {
-            question: "Um KI erfolgreich im Unternehmen einzuführen, ist für mich das Wichtigste...",
-            answers: [
-                { text: "eine Kultur des Experimentierens und schnellen Lernens.", points: 5 },
-                { text: "klare Anwendungsfälle, die einen direkten Nutzen bringen.", points: 4 },
-                { text: "umfassende Schulungen für alle Mitarbeiter.", points: 3 },
-                { text: "strenge Regeln und ethische Leitplanken von Anfang an.", points: 2 },
-            ]
-        },
-        {
-            question: "Meine persönliche Lernbereitschaft in Bezug auf neue Technologien wie KI würde ich als ... beschreiben.",
-            answers: [
-                { text: "sehr hoch, ich bringe mir ständig Neues bei.", points: 5 },
-                { text: "hoch, wenn ich den praktischen Nutzen sehe.", points: 4 },
-                { text: "mittel, ich lerne, was für meinen Job notwendig ist.", points: 3 },
-                { text: "eher gering, ich konzentriere mich auf meine Kernkompetenzen.", points: 2 },
-            ]
-        }
-    ];
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // --- Configuration ---
+            const questions = [
+                {
+                    id: 'q1',
+                    text: 'Ich nutze regelmäßig KI-Werkzeuge (z.B. ChatGPT, Copilot, Midjourney), um meine täglichen Aufgaben zu erleichtern.'
+                },
+                {
+                    id: 'q2',
+                    text: 'Ich vertraue den Ergebnissen und Vorschlägen von KI-Systemen für wichtige berufliche Entscheidungen.'
+                },
+                {
+                    id: 'q3',
+                    text: 'Ich sehe KI mehr als eine Chance für meine berufliche Weiterentwicklung denn als ein Risiko für meinen Arbeitsplatz.'
+                },
+                {
+                    id: 'q4',
+                    text: 'Ich investiere aktiv Zeit, um die Funktionsweise und die Möglichkeiten neuer KI-Anwendungen zu verstehen.'
+                },
+                {
+                    id: 'q5',
+                    text: 'Ich suche proaktiv nach neuen Wegen, um KI-Lösungen in bestehende Arbeitsprozesse in meinem Team oder Unternehmen zu integrieren.'
+                },
+                {
+                    id: 'q6',
+                    text: 'Ich fühle mich von meinem Unternehmen ausreichend unterstützt (z.B. durch Schulungen, Ressourcen), um KI effektiv zu nutzen.'
+                },
+                {
+                    id: 'q7',
+                    text: 'Ich mache mir Gedanken über die ethischen Implikationen (z.B. Datenschutz, Voreingenommenheit) beim Einsatz von KI am Arbeitsplatz.'
+                }
+            ];
 
-    // --- ERGEBNIS-TYPEN ---
-    const results = [
-        {
-            score: 25,
-            title: "Der KI-Pionier / Die KI-Pionierin",
-            description: "Du siehst KI als riesige Chance und bist begeistert von den neuen Möglichkeiten. Deine proaktive und experimentierfreudige Art ist ein Motor für Innovation.",
-            feedback: [
-                "<b>Deine Stärke:</b> Du erkennst Potenziale früh und hast keine Angst, neue Wege zu gehen.",
-                "<b>Dein Denkanstoß:</b> Achte darauf, dein Team mitzunehmen und auch die Bedenken anderer ernst zu nehmen, um niemanden auf dem Weg zu verlieren.",
-                "<b>Dein nächster Schritt:</b> Identifiziere einen konkreten, kleinen Prozess in deinem Bereich, den du mit einem neuen KI-Tool verbessern kannst, und starte ein Pilotprojekt."
-            ],
-            color: "indigo"
-        },
-        {
-            score: 20,
-            title: "Der/Die Neugierige Entdecker:in",
-            description: "Du bist offen und neugierig gegenüber KI, aber suchst noch nach den richtigen Anknüpfungspunkten. Deine positive Grundhaltung ist die perfekte Basis, um die Potenziale von KI zu erschließen.",
-            feedback: [
-                "<b>Deine Stärke:</b> Du bist lernbereit und offen für Veränderungen, ohne dem Hype blind zu folgen.",
-                "<b>Dein Denkanstoß:</b> Verliere dich nicht in der Fülle der Möglichkeiten. Konzentriere dich auf ein oder zwei konkrete Anwendungsfälle, die dir den größten Nutzen bringen.",
-                "<b>Dein nächster Schritt:</b> Nutze die Toolbox, um ein praktisches Tool zu finden, das eine deiner wiederkehrenden Aufgaben vereinfacht, und probiere es aus."
-            ],
-            color: "sky"
-        },
-        {
-            score: 15,
-            title: "Der/Die Pragmatische Anwender:in",
-            description: "Du siehst KI vor allem als Werkzeug zur Effizienzsteigerung. Für dich zählt der praktische Nutzen im Hier und Jetzt mehr als Zukunftsvisionen.",
-            feedback: [
-                "<b>Deine Stärke:</b> Du hast einen klaren Blick für den realen Nutzen und lässt dich nicht von leeren Versprechungen blenden.",
-                "<b>Dein Denkanstoß:</b> Behalte auch die strategische Ebene im Blick. Manchmal liegen die größten Chancen nicht in der Optimierung bestehender Prozesse, sondern in der Schaffung völlig neuer.",
-                "<b>Dein nächster Schritt:</b> Analysiere eine deiner zeitaufwändigsten Routineaufgaben und recherchiere gezielt nach einem KI-Tool, das genau dieses Problem löst."
-            ],
-            color: "teal"
-        },
-        {
-            score: 0,
-            title: "Der/Die Vorsichtige Skeptiker:in",
-            description: "Du stehst der rasanten Entwicklung von KI mit einer gesunden Portion Skepsis gegenüber. Dir sind Sicherheit, klare Regeln und die potenziellen Risiken besonders wichtig.",
-            feedback: [
-                "<b>Deine Stärke:</b> Deine kritische Haltung ist extrem wertvoll, um Risiken und ethische Fragen nicht aus den Augen zu verlieren.",
-                "<b>Dein Denkanstoß:</b> Versuche, KI nicht nur als Risiko, sondern auch als Werkzeug zu sehen, das – richtig eingesetzt – deine Arbeit sicherer und besser machen kann.",
-                "<b>Dein nächster Schritt:</b> Beschäftige dich mit den Datenschutz- und Sicherheitsaspekten von Tools wie dem MS Copilot, um ein fundiertes Verständnis für einen sicheren Einsatz zu entwickeln."
-            ],
-            color: "amber"
-        }
-    ];
+            const quizForm = document.getElementById('quiz-form');
+            const evaluateBtn = document.getElementById('evaluate-btn');
+            const quizSection = document.getElementById('quiz-section');
+            const resultSection = document.getElementById('result-section');
+            const resultText = document.getElementById('result-text');
+            const downloadPdfBtn = document.getElementById('download-pdf-btn');
+            const restartBtn = document.getElementById('restart-btn');
+            const loadingOverlay = document.getElementById('loading-overlay');
 
-    // --- QUIZ-LOGIK ---
-    let currentQuestionIndex = 0;
-    let score = 0;
-    let userAnswers = [];
+            // --- Functions ---
 
-    function startQuiz() {
-        document.getElementById('intro-screen').classList.add('hidden');
-        document.getElementById('question-screen').classList.remove('hidden');
-        showQuestion();
-    }
+            /**
+             * Initializes the quiz by creating and displaying the questions.
+             */
+            function initializeQuiz() {
+                let formHTML = '';
+                questions.forEach((question, index) => {
+                    formHTML += `
+                        <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+                            <p class="font-semibold text-lg mb-4">${index + 1}. ${question.text}</p>
+                            <div class="flex flex-wrap justify-between items-center gap-4 text-sm text-gray-500">
+                                <span>Stimme überhaupt nicht zu</span>
+                                <div class="flex space-x-4 md:space-x-6">
+                                    ${[1, 2, 3, 4, 5].map(value => `
+                                        <label for="${question.id}-val${value}" class="flex flex-col items-center cursor-pointer">
+                                            <input type="radio" id="${question.id}-val${value}" name="${question.id}" value="${value}" class="custom-radio" required>
+                                            <span class="mt-2 font-medium text-gray-700">${value}</span>
+                                        </label>
+                                    `).join('')}
+                                </div>
+                                <span>Stimme voll und ganz zu</span>
+                            </div>
+                        </div>
+                    `;
+                });
+                quizForm.innerHTML = formHTML;
+            }
 
-    function showQuestion() {
-        const question = questions[currentQuestionIndex];
-        const card = document.getElementById('question-card');
-        
-        let answersHtml = '<div class="grid grid-cols-1 gap-3 mt-4">';
-        question.answers.forEach((answer, index) => {
-            answersHtml += `
-                <div>
-                    <input type="radio" id="answer-${index}" name="answer" value="${answer.points}" class="hidden">
-                    <label for="answer-${index}" class="block p-4 border-2 border-slate-200 rounded-lg cursor-pointer hover:bg-slate-50 transition text-center">
-                        ${answer.text}
-                    </label>
-                </div>
-            `;
+            /**
+             * Evaluates the answers and displays the result.
+             */
+            function evaluateAnswers(event) {
+                event.preventDefault();
+                if (!quizForm.checkValidity()) {
+                    // Create a custom message box instead of alert
+                    const messageBox = document.createElement('div');
+                    messageBox.textContent = 'Bitte beantworten Sie alle Fragen, um fortzufahren.';
+                    messageBox.style.cssText = 'position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background-color: #ef4444; color: white; padding: 16px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); z-index: 100;';
+                    document.body.appendChild(messageBox);
+                    setTimeout(() => {
+                        messageBox.remove();
+                    }, 3000);
+                    return;
+                }
+
+                let totalScore = 0;
+                questions.forEach(question => {
+                    const selectedValue = quizForm.querySelector(`input[name="${question.id}"]:checked`);
+                    if (selectedValue) {
+                        totalScore += parseInt(selectedValue.value);
+                    }
+                });
+
+                displayResult(totalScore);
+            }
+
+            /**
+             * Displays the result based on the calculated score.
+             * @param {number} score - The total score from the quiz.
+             */
+            function displayResult(score) {
+                let mindsetProfile, description;
+                
+                if (score <= 15) {
+                    mindsetProfile = 'Der KI-Skeptiker';
+                    description = `
+                        <p>Sie begegnen der KI mit einer gesunden Portion Skepsis und Vorsicht. Für Sie stehen die Zuverlässigkeit, Sicherheit und ethische Aspekte im Vordergrund.</p>
+                        <p class="mt-2"><strong>Reflexions-Impuls:</strong> Welche konkreten Informationen oder Erfahrungen würden Ihnen helfen, mehr Vertrauen in KI-Anwendungen zu fassen? Gibt es kleine, risikoarme Anwendungsfälle, in denen Sie KI testen könnten?</p>
+                    `;
+                } else if (score <= 26) {
+                    mindsetProfile = 'Der pragmatische Anwender';
+                    description = `
+                        <p>Sie haben eine ausgewogene und realistische Sicht auf Künstliche Intelligenz. Sie erkennen das Potenzial als nützliches Werkzeug, sind sich aber auch der Grenzen und Herausforderungen bewusst. Effizienz und praktischer Nutzen stehen für Sie im Mittelpunkt.</p>
+                        <p class="mt-2"><strong>Reflexions-Impuls:</strong> In welchen wiederkehrenden Aufgaben könnte KI Sie noch besser unterstützen, um mehr Zeit für strategische oder kreative Tätigkeiten zu gewinnen? Welches Wissen fehlt Ihnen, um den nächsten Schritt zu machen?</p>
+                    `;
+                } else {
+                    mindsetProfile = 'Der KI-Enthusiast';
+                    description = `
+                        <p>Sie sind fasziniert von den Möglichkeiten der KI und sehen sie als treibende Kraft für Innovation und Fortschritt. Sie experimentieren gerne mit neuen Tools und suchen aktiv nach Wegen, diese gewinnbringend einzusetzen.</p>
+                        <p class="mt-2"><strong>Reflexions-Impuls:</strong> Wie können Sie Ihre Begeisterung und Ihr Wissen nutzen, um Kollegen zu inspirieren und zu unterstützen? Welche ethischen Leitplanken sind wichtig, um sicherzustellen, dass Ihre innovativen Ideen verantwortungsvoll umgesetzt werden?</p>
+                    `;
+                }
+
+                resultText.innerHTML = `
+                    <h3 class="text-2xl font-semibold text-gray-800">${mindsetProfile}</h3>
+                    <p class="text-gray-600">Ihre Gesamtpunktzahl: <strong>${score}</strong> von ${questions.length * 5} möglichen Punkten.</p>
+                    <div class="mt-4 pt-4 border-t border-gray-200">${description}</div>
+                `;
+
+                quizSection.classList.add('hidden');
+                resultSection.classList.remove('hidden');
+                window.scrollTo(0, 0); // Scroll to top to see results
+            }
+            
+            /**
+             * Generates and downloads the PDF of the results.
+             */
+            async function downloadPDF() {
+                loadingOverlay.classList.remove('hidden');
+
+                const { jsPDF } = window.jspdf;
+                const pdfContent = document.getElementById('pdf-content');
+                
+                // Use html2canvas to render the result div
+                const canvas = await html2canvas(pdfContent, {
+                    scale: 2, // Higher scale for better quality
+                    useCORS: true,
+                    backgroundColor: null // Use transparent background
+                });
+                const imgData = canvas.toDataURL('image/png');
+
+                const doc = new jsPDF({
+                    orientation: 'p',
+                    unit: 'mm',
+                    format: 'a4'
+                });
+
+                const pageWidth = doc.internal.pageSize.getWidth();
+                const pageHeight = doc.internal.pageSize.getHeight();
+                const margin = 15;
+
+                // --- Add Header to PDF ---
+                const logoUrl = 'https://i.imgur.com/PKXYVWW.png';
+                // Load logo image data
+                const response = await fetch(logoUrl);
+                const blob = await response.blob();
+                const logoData = await new Promise(resolve => {
+                    const reader = new FileReader();
+                    reader.onloadend = () => resolve(reader.result);
+                    reader.readAsDataURL(blob);
+                });
+                
+                // Add Logo
+                doc.addImage(logoData, 'PNG', pageWidth - margin - 35, margin, 30, 10); // x, y, width, height
+                
+                // Add Title
+                doc.setFontSize(20);
+                doc.setFont('helvetica', 'bold');
+                doc.setTextColor('#334155'); // text-gray-700
+                doc.text('Mein KI Mindset Check', margin, margin + 8);
+                
+                // Add a separator line
+                doc.setDrawColor('#e5e7eb'); // border-gray-200
+                doc.setLineWidth(0.5);
+                doc.line(margin, margin + 20, pageWidth - margin, margin + 20);
+
+                // --- Add Result Content to PDF ---
+                const imgProps = doc.getImageProperties(imgData);
+                const pdfWidth = pageWidth - 2 * margin;
+                const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+                
+                let contentY = margin + 30;
+
+                if (contentY + pdfHeight > pageHeight - margin) {
+                    doc.addPage();
+                    contentY = margin;
+                }
+
+                doc.addImage(imgData, 'PNG', margin, contentY, pdfWidth, pdfHeight);
+
+                // --- Save the PDF ---
+                doc.save('Mein-KI-Mindset-Check.pdf');
+                
+                loadingOverlay.classList.add('hidden');
+            }
+
+            /**
+             * Resets the quiz to its initial state.
+             */
+            function restartQuiz() {
+                quizForm.reset();
+                resultSection.classList.add('hidden');
+                quizSection.classList.remove('hidden');
+                window.scrollTo(0, 0);
+            }
+
+            // --- Event Listeners ---
+            evaluateBtn.addEventListener('click', evaluateAnswers);
+            downloadPdfBtn.addEventListener('click', downloadPDF);
+            restartBtn.addEventListener('click', restartQuiz);
+
+            // --- Initial Load ---
+            initializeQuiz();
         });
-        answersHtml += '</div>';
-
-        card.innerHTML = `
-            <h3 class="text-xl font-bold text-center">${question.question}</h3>
-            ${answersHtml}
-        `;
-        
-        document.getElementById('progress-text').innerText = `Frage ${currentQuestionIndex + 1} von ${questions.length}`;
-
-        document.querySelectorAll('input[name="answer"]').forEach(radio => {
-            radio.addEventListener('change', (event) => {
-                document.getElementById('next-button').disabled = false;
-                document.getElementById('next-button').classList.remove('bg-slate-300', 'text-slate-600', 'cursor-not-allowed');
-                document.getElementById('next-button').classList.add('bg-indigo-600', 'text-white');
-            });
-        });
-    }
-
-    function nextQuestion() {
-        const selectedAnswer = document.querySelector('input[name="answer"]:checked');
-        if (!selectedAnswer) return;
-
-        score += parseInt(selectedAnswer.value);
-        userAnswers.push(parseInt(selectedAnswer.value));
-        
-        currentQuestionIndex++;
-
-        if (currentQuestionIndex < questions.length) {
-            showQuestion();
-            document.getElementById('next-button').disabled = true;
-            document.getElementById('next-button').classList.add('bg-slate-300', 'text-slate-600', 'cursor-not-allowed');
-            document.getElementById('next-button').classList.remove('bg-indigo-600', 'text-white');
-        } else {
-            showResult();
-        }
-    }
-
-    function showResult() {
-        document.getElementById('question-screen').classList.add('hidden');
-        const resultScreen = document.getElementById('result-screen');
-        resultScreen.classList.remove('hidden');
-
-        let finalResult;
-        if (score <= 14) finalResult = results[3];
-        else if (score <= 19) finalResult = results[2];
-        else if (score <= 24) finalResult = results[1];
-        else finalResult = results[0];
-        
-        let feedbackHtml = '';
-        finalResult.feedback.forEach(item => {
-            feedbackHtml += `<li class="flex items-start"><span class="mr-2 mt-1 text-${finalResult.color}-500">✓</span><span>${item}</span></li>`;
-        });
-
-        resultScreen.innerHTML = `
-            <div id="result-for-pdf">
-                <div class="result-card border-l-4 border-${finalResult.color}-500 bg-${finalResult.color}-50 p-6 rounded-r-lg">
-                    <h2 class="text-2xl font-bold text-${finalResult.color}-800">${finalResult.title}</h2>
-                    <p class="mt-2 text-slate-700">${finalResult.description}</p>
-                    <ul class="mt-4 space-y-2 text-slate-600">
-                        ${feedbackHtml}
-                    </ul>
-                </div>
-            </div>
-            <div class="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                 <button onclick="downloadResultPDF()" class="w-full bg-emerald-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-emerald-700 transition">
-                    Ergebnis als PDF speichern
-                </button>
-                <button onclick="restartQuiz()" class="w-full bg-slate-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-slate-700 transition">
-                    Übung wiederholen
-                </button>
-            </div>
-        `;
-    }
-    
-    function restartQuiz() {
-        currentQuestionIndex = 0;
-        score = 0;
-        userAnswers = [];
-        document.getElementById('result-screen').classList.add('hidden');
-        document.getElementById('intro-screen').classList.remove('hidden');
-    }
-
-    // --- PDF GENERATION ---
-    async function downloadResultPDF() {
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF({
-            orientation: 'p',
-            unit: 'mm',
-            format: 'a4'
-        });
-
-        // --- PDF Header ---
-        // 1. Add Logo
-        const logoImg = document.getElementById('logo');
-        if (logoImg.complete && logoImg.naturalHeight !== 0) {
-             // Using 'PNG' format for transparency support
-            doc.addImage(logoImg, 'PNG', 85, 15, 40, 13);
-        }
-
-        // 2. Add Title
-        doc.setFontSize(22);
-        doc.setFont("helvetica", "bold");
-        doc.text("Dein KI-Mindset Check", 105, 40, { align: 'center' });
-
-        // 3. Add Subtitle
-        doc.setFontSize(12);
-        doc.setFont("helvetica", "normal");
-        doc.text("Eine kurze Übung zur Selbstreflexion deiner Haltung gegenüber KI.", 105, 48, { align: 'center' });
-        
-        // 4. Add Date
-        const today = new Date();
-        const dateString = `Erstellt am: ${today.toLocaleDateString('de-DE')}`;
-        doc.setFontSize(10);
-        doc.setTextColor(100); // Set color to gray
-        doc.text(dateString, 195, 15, { align: 'right' });
-
-
-        // --- PDF Body (Result Card) ---
-        const resultElement = document.getElementById('result-for-pdf');
-        // Use html2canvas to render the result card to a canvas
-        const canvas = await html2canvas(resultElement, {
-            scale: 2, // Higher scale for better resolution
-            useCORS: true,
-            backgroundColor: '#ffffff' // Ensure a white background
-        });
-        const imgData = canvas.toDataURL('image/png');
-        
-        // Calculate image dimensions to fit the page with margins
-        const page_width = doc.internal.pageSize.getWidth();
-        const page_margin = 15;
-        const img_width = page_width - (page_margin * 2);
-        const img_props = doc.getImageProperties(imgData);
-        const img_height = (img_props.height * img_width) / img_props.width;
-        const startY = 65; // Y position to start drawing the image
-
-        doc.addImage(imgData, 'PNG', page_margin, startY, img_width, img_height);
-
-        // --- Save PDF ---
-        doc.save('KI-Mindset-Check_Ergebnis.pdf');
-    }
-
-</script>
-
+    </script>
 </body>
 </html>
